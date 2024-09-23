@@ -36,21 +36,8 @@ A numeric value with the metric estimation.
 
 \examples{
 
-data(dataDIVAT2)
+# to do
 
-# The estimation of the model
-model <- LIB_COXridge(times="times", failures="failures", data=dataDIVAT2,
-  cov.quanti=c("age"),  cov.quali=c("hla", "retransplant", "ecd"), lambda=1)
-
-# The apparent AUC at 10-year post-transplantation
-metrics(times="times", failures="failures", data=dataDIVAT2,
-  prediction.matrix=model$predictions, prediction.times=model$times,
-  metric="auc", pro.time=10)
-
-# The integrated Brier score up to 10 years post-transplanation
-metrics(times="times", failures="failures", data=dataDIVAT2,
-  prediction.matrix=model$predictions, prediction.times=model$times,
-  metric="ribs", pro.time=10)
 }
 
 \keyword{Metrics}

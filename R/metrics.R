@@ -146,7 +146,7 @@ metrics <- function(times, failures, data, prediction.matrix, prediction.times, 
          auc={
            .data <- data.frame(times=data[,times], failures=data[,failures],
                                variable=1-prediction.matrix[,prediction.times>=pro.time][,1])
-           RET <- roc(times="times", failures="failures", variable="variable",
+           RET <- roc.time(times="times", failures="failures", variable="variable",
                            confounders=~1, data=.data,
                            pro.time=pro.time, precision=ROC.precision)$auc
          },
