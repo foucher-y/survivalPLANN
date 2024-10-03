@@ -30,7 +30,7 @@ rsPLANN(formula, data, pro.time=NULL, inter, size = 32, decay = 0.01,
 \item{sex}{A character vector with the gender: "male" or "female".}
 }
 
-\value{
+\value{  
 \item{formula}{The \code{formula} object.}
 \item{data}{The data frame given with the computed \code{Intervals} column added.}
 \item{pro.time}{The maximum prognostic time.}
@@ -49,20 +49,19 @@ The Biganzoli's PLANN method is used to predict the overall survival.
 data(dataK)
 data(fr.ratetable)
 
-rs1 <- rsPLANN(Surv(time, event) ~ stade + delay + sex +  biomarker, data = dataK[1:200,],
+cmp_fit <- cmp.rel(Surv(time, event) ~ 1, data=dataK[1:500,], ratetable=fr.ratetable,
+        rmap=list(age=age, sex= sex, year=year))
+
+plot(cmp_fit, col=c("black", "red"), lty=1, xscale = 365.241, xlab="Time (years)")
+
+rs1 <- rsPLANN(Surv(time, event) ~ stade + delay + sex +  biomarker, data = dataK[1:500,],
                pro.time = 365.241*20, inter=365.241, size = 16, decay = 0.01,
                maxit = 100, MaxNWts=10000, ratetable=fr.ratetable,
                age="age", sex="sexchara", year="year")
 
-mdistE <- apply(rs1$predictions$CIFc, FUN=mean, MARGIN=2)
-mdistP <- apply(rs1$predictions$CIFp, FUN=mean, MARGIN=2)
+lines(rs1$times/365.241, rs1$mpredictions$CIF_C, type="s", col="black", lty=2)
 
-plot(rs1$predictions$times/365.241, mdistE,
-xlab="Post-diagnostic time (years)",
-     ylab="Cumulative incidence functions",
-     ylim=c(0,1), col="red", type="s",)
-
-lines(rs1$predictions$times/365.241, mdistP, type="s", col="blue")
+lines(rs1$times/365.241, rs1$mpredictions$CIF_P, type="s", col="red", lty=2)
 
 legend("topleft", legend=c("Cancer-related death", "Death due to other causes"), col=c("red", "blue"), lty=c(1,1))
 }

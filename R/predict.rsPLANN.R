@@ -1,15 +1,7 @@
 
-predict.rsPLANN <- function(object, newdata = NULL, newtimes = NULL, ratetable, age, year, sex, ...) # @Thomas: inclure ratetable et ses arguments dans formula
+predict.rsPLANN <- function(object, newdata = NULL, newtimes = NULL, ratetable, age, year, sex, ...)
 {
      
-#  object <- rs1
-#  newdata = dataK[1:200,]
-#  newtimes = NULL
-#  ratetable <- fr.ratetable
-#  age="age"
- # sex="sexchara"
-#  year="year"
-  
     if( is.null(newdata) & is.null(newtimes))
     {     res <- list(times = object$predictions$times, predictions = object$predictions[-1]) 
     } else 
@@ -23,7 +15,17 @@ predict.rsPLANN <- function(object, newdata = NULL, newtimes = NULL, ratetable, 
       
       times <- predO$times
       
-      exphaz <- function(x,age,sex,year) { expectedhaz(ratetable, age=age, sex=sex, year=year, time=x)}
+      #expectedhaz <- function(ratetable, age, year, sex, time) 
+      #{
+      #  time <- min(time, 1000000)
+      #  .year <- date.mdy(year+time)$year
+        
+      #  ratetable[as.character( min( floor((age+time)/365.24), max(as.numeric(names(ratetable[, "2000", "male"]))) ) ),
+       #           as.character( min( .year, max(as.numeric(names(ratetable["51", , "male"]))) ) ),
+       #           sex]
+     # }
+      
+      exphaz <- function(x,age,sex,year) { survivalNET::expectedhaz(ratetable, age=age, sex=sex, year=year, time=x)}
       
       survO <- as.matrix(predO$predictions)
       dimnames(survO) <- NULL
@@ -83,17 +85,52 @@ predict.rsPLANN <- function(object, newdata = NULL, newtimes = NULL, ratetable, 
       
       Pcure <- distPinf / (distPinf + (1-distPinf) * survU)
       
+      sumS <- apply((1-distO), FUN="sum", MARGIN=2)
+      
+      SlE <- (1-distO) * cbind(rep(0, N), hinstE)
+      sumSlE <- apply(SlE, FUN="sum", MARGIN=2)
+      lambda_C <- sumSlE/sumS
+      #Lambda_C <- cumsum(lambda_C)
+      
+      SlP <- (1-distO) * cbind(rep(0, N), hinstP)
+      sumSlP <- apply(SlP, FUN="sum", MARGIN=2)
+      lambda_P <- sumSlP/sumS
+      #Lambda_P <- cumsum(lambda_P)
+      
+      # warning -> NA pour tCure ...
+      
       if(!is.null(newtimes)) # @Thomas : merci de vérifier que je renvois les bonnes valeurs dans cette condition -> voir plot dans l'exemple du fichier Rd
         {
       idx <- findInterval(newtimes, times, left.open = TRUE)
+      
       distE <- distE[,pmin(idx,length(times-1))]
       distP <- distP[,pmin(idx,length(times-1))]
+      Pcure <- Pcure[,pmin(idx,length(times-1))]
+      survP <- survP[,pmin(idx,length(times-1))]
+      survU <- survU[,pmin(idx,length(times-1))]
       Pcure <- Pcure[,pmin(idx,length(times-1))]
       times <- newtimes
         }
       
-      res <- list(times=times,
-                  predictions = list(times=times, Fc=distE, Fp = distP, tPcure = Pcure, aPcure = distPinf) )
+      res <- list(
+                  times = times,
+                  ipredictions = list(survival_P=survP,
+                                      survival_O=1-distO,
+                                      #survival_R=(1-distO)/survP,
+                                      survival_E=survU, # remarque : S(1-distO)/survP = survU
+                                      CIF_C = distE, CIF_P = distP, maxCIF_P = distPinf,
+                                      cure = Pcure),
+                  mpredictions = list(survival_O = apply((1-distO), FUN="mean", MARGIN=2),
+                                      survival_P = apply(survP, FUN="mean", MARGIN=2),
+                                      survival_R = apply((1-distO), FUN="mean", MARGIN=2)/apply(survP, FUN="mean", MARGIN=2),
+                                      survival_E = apply((1-distO)/survP, FUN="mean", MARGIN=2),
+                                      CIF_C =  apply(distE, FUN="mean", MARGIN=2),
+                                      CIF_P =  apply(distP, FUN="mean", MARGIN=2),   
+                                      cure = apply(Pcure, FUN="mean", MARGIN=2),
+                                      hazard_P = lambda_P,
+                                      hazard_C = lambda_C )
+                     )
+      
     }
   
   return(res)

@@ -29,7 +29,17 @@ rsPLANN <- function(formula, data, pro.time=NULL, inter, size= 32, decay=0.01,
   
   times <- predO$times
   
-  exphaz <- function(x,age,sex,year) { expectedhaz(ratetable, age=age, sex=sex, year=year, time=x)}
+  #expectedhaz <- function(ratetable, age, year, sex, time) 
+  #{
+  #  time <- min(time, 1000000)
+  #  .year <- date.mdy(year+time)$year
+  #  
+  #  ratetable[as.character( min( floor((age+time)/365.24), max(as.numeric(names(ratetable[, "2000", "male"]))) ) ),
+  #            as.character( min( .year, max(as.numeric(names(ratetable["51", , "male"]))) ) ),
+  #            sex]
+  #}
+  
+  exphaz <- function(x,age,sex,year) { survivalNET::expectedhaz(ratetable, age=age, sex=sex, year=year, time=x)}
   
   survO <- as.matrix(predO$predictions)
   dimnames(survO) <- NULL
@@ -42,7 +52,7 @@ rsPLANN <- function(formula, data, pro.time=NULL, inter, size= 32, decay=0.01,
   for (i in 1:N) # @Thomas : merci de voir si tu augmenter la vitesse du calcul de hP
   {
     hP[i,] <- sapply(times, FUN="exphaz", age=data[i,age],
-                     sex=data[i,sex], year=data[i,year]) * inter
+                     sex=data[i,sex], year=data[i,year]) * splann$inter
   }
   
   hcumO <- -1*log(survO)
@@ -88,6 +98,18 @@ rsPLANN <- function(formula, data, pro.time=NULL, inter, size= 32, decay=0.01,
   survU <- cbind(rep(1, N), exp(-t(as.matrix(cumsum(data.frame(t(hinstE)))))))
   
   Pcure <- distPinf / (distPinf + (1-distPinf) * survU)
+
+  sumS <- apply((1-distO), FUN="sum", MARGIN=2)
+  
+  SlE <- (1-distO) * cbind(rep(0, N), hinstE)
+  sumSlE <- apply(SlE, FUN="sum", MARGIN=2)
+  lambda_C <- sumSlE/sumS
+  #Lambda_C <- cumsum(lambda_C)
+  
+  SlP <- (1-distO) * cbind(rep(0, N), hinstP)
+  sumSlP <- apply(SlP, FUN="sum", MARGIN=2)
+  lambda_P <- sumSlP/sumS
+  #Lambda_P <- cumsum(lambda_P)
   
   # warning -> NA pour tCure ...
   
@@ -102,8 +124,24 @@ rsPLANN <- function(formula, data, pro.time=NULL, inter, size= 32, decay=0.01,
               size = splann$size,
               decay = splann$decay,
               fitsurvivalnet = splann,
-              predictions = list(times=times, CIFc=distE, CIFp = distP, tPcure = Pcure, aPcure = distPinf, Sp=survP, Sc =  survU)
-  )
+              times = times,
+              ipredictions = list(survival_P=survP,
+                                  survival_O=1-distO,
+                                  survival_E2=(1-distO)/survP,
+                                  survival_E=survU, # remarque : S(1-distO)/survP = survU
+                                  CIF_C = distE, CIF_P = distP, maxCIF_P = distPinf,
+                                  cure = Pcure),
+              mpredictions = list(survival_O = apply((1-distO), FUN="mean", MARGIN=2),
+                                  survival_P = apply(survP, FUN="mean", MARGIN=2),
+                                  survival_R = apply((1-distO), FUN="mean", MARGIN=2)/apply(survP, FUN="mean", MARGIN=2),
+                                  survival_E = apply((1-distO)/survP, FUN="mean", MARGIN=2),
+                                  CIF_C =  apply(distE, FUN="mean", MARGIN=2),
+                                  CIF_P =  apply(distP, FUN="mean", MARGIN=2),   
+                                  cure = apply(Pcure, FUN="mean", MARGIN=2),
+                                  hazard_P = lambda_P,
+                                  hazard_C = lambda_C
+                                  )
+              )
   
   class(res) <- "rsPLANN"
   return(res)
