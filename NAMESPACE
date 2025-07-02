@@ -1,6 +1,6 @@
 import(survival)
 import(nnet)
-import(relsurv)
+#import(relsurv)
 
 importFrom("methods", "hasArg")
 
@@ -11,16 +11,16 @@ importFrom("graphics", "abline", "segments")
   
 importFrom("RISCA", "roc.time")
 
-importFrom("survivalNET", "expectedhaz")
+#importFrom("survivalNET", "expectedhaz")
   
 export(sPLANN)
-export(predictRS)
+#export(predictRS)
 export(cvPLANN)
 export(metrics)
-export(predictRS)
+#export(predictRS)
 
 S3method(predict, sPLANN)
 S3method(print, sPLANN)
-S3method(print, predictRS)
+#S3method(print, predictRS)
 S3method(plot, sPLANN)
-S3method(plot, predictRS)
+#S3method(plot, predictRS)

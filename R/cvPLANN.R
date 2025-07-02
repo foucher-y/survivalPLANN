@@ -23,7 +23,7 @@ cvPLANN <- function(formula, pro.time=NULL, data, cv=10, inter=1, size = 8, deca
     return(vars)
   }
   
-  ##différentiation quanti/quali
+  ##differentiation quanti/quali
   quali_col <- c()  
   quanti_col <- c() 
   warn <- 0 

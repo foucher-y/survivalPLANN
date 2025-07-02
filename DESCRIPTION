@@ -1,9 +1,9 @@
 Package: survivalPLANN
 Type: Package
 Title: Neural Networks to Predict Survival 
-Version: 0.30
-Depends: R (>= 4.0.0), survival, nnet, relsurv
-Imports: methods, stats,  RISCA, survivalNET
+Version: 0.4
+Depends: R (>= 4.0.0), survival, nnet
+Imports: methods, stats,  RISCA
 Description: Several functions and S3 methods to predict survival by using neural networks. We implemented Partial Logistic Artificial Neural Networks (PLANN) as proposed by Biganzoli et al. (1998)  <https://pubmed.ncbi.nlm.nih.gov/9618776>.
 License: GPL (>=2)
 LazyLoad: yes

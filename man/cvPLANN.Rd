@@ -34,8 +34,8 @@ cvPLANN(formula, pro.time=NULL, data, cv=10, inter=1, size=8, decay=0.01,
 \examples{
 data(dataK) # the database with the observed sample
 
-tune.sPLANN <- cvPLANN(Surv(time, event)~ stade + delay, data=dataK, cv=10,
-                     inter=365.241, size=c(2, 4, 8), decay=c(0.01, 0.1))
+tune.sPLANN <- cvPLANN(Surv(time, event)~ stade + delay, data=dataK, cv=3,
+                     inter=365.241, size=c(2, 4), decay=0.01)
                      
 tune.sPLANN$optimal
 }
